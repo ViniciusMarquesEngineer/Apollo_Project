@@ -49,7 +49,7 @@ python app.py
 http://localhost:5000
 ```
 
-> **Recomendamos o Google Chrome** para melhor compatibilidade com a câmera QR Code.
+> **Recomendamos o Google Chrome**.
 
 ---
 
@@ -68,7 +68,6 @@ http://localhost:5000
 - Registrar **entradas** e **saídas** de produtos
 - Usar a **câmera** (botão azul no canto inferior direito) para ler QR Codes
 - Visualizar movimentações e alertas de estoque baixo
-- Cada movimentação gera automaticamente um **QR Code PNG** para download
 
 ### Administrador (`/admin`)
 - Tudo que o funcionário faz, mais:
@@ -80,20 +79,6 @@ http://localhost:5000
   - Estoque atual
   - Produtos críticos
   - Usuários cadastrados
-
----
-
-## 📷 Câmera / QR Code
-
-O sistema usa a câmera do navegador (sem instalar nada extra):
-
-1. Clique no botão de câmera 📷 no canto inferior direito
-2. Autorize o acesso à câmera quando o browser pedir
-3. Aponte para o QR Code do produto
-4. O sistema detecta automaticamente e:
-   - Mostra os dados do produto (nome, código, categoria, estoque atual)
-   - Oferece os botões **Registrar Entrada** ou **Registrar Saída**
-   - Ao clicar, vai direto ao formulário com os campos preenchidos
 
 ---
 
@@ -177,7 +162,6 @@ Se o e-mail não chegar, o código também aparece no **terminal do servidor** (
 - **Backend:** Python 3 + Flask
 - **Banco de dados:** SQLite (via módulo `sqlite3`)
 - **Planilha Excel:** openpyxl
-- **QR Code:** qrcode + Pillow (servidor) / jsQR (browser)
 - **Autenticação:** Werkzeug password hashing + Flask sessions
 - **E-mail:** EmailJS (verificação de cadastro)
 - **Frontend:** HTML5 + CSS3 + JavaScript puro (sem frameworks)
