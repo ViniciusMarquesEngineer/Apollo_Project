@@ -1,88 +1,187 @@
-🚀 Apollo Project
+# 🚀 Apollo Logística — Sistema Completo
 
-O Apollo Project é um sistema web de controle de estoque desenvolvido em Python, projetado para modernizar a gestão de empresas que ainda dependem de processos manuais. Ele combina automação inteligente e visão computacional para oferecer uma solução robusta, escalável e confiável, capaz de reduzir erros e otimizar operações logísticas.
+Sistema de gestão de estoque com backend Python (Flask) + banco de dados SQLite + frontend integrado.
 
-📌 Contexto
+---
 
-Em muitos ambientes empresariais, o controle de estoque ainda é realizado por registros manuais ou leitura individual de códigos de barras. Esse processo gera:
+## 📁 Estrutura do Projeto
 
-- Latência no registro de movimentações
+```
+apollo-full/
+├── app.py                  ← Servidor Flask (backend principal)
+├── setup.py                ← Script de instalação automática
+├── requirements.txt        ← Dependências Python
+├── apollo.db               ← Banco de dados SQLite (criado ao iniciar)
+├── templates/
+│   ├── apollo-landing.html    ← Página inicial / cadastro / login
+│   ├── apollo-dashboard.html  ← Dashboard do funcionário
+│   └── apollo-admin.html      ← Painel do administrador
+└── static/                 ← Arquivos estáticos (CSS/JS extras, se necessário)
+```
 
-- Inconsistências nos dados
+---
 
-- Dificuldade em manter inventário atualizado em tempo real
+## ⚙️ Como Rodar (Primeira Vez)
 
-O Apollo Project foi criado para eliminar essas barreiras e trazer eficiência operacional e precisão às informações de estoque.
+### Pré-requisitos
+- Python 3.8 ou superior instalado
+- Pip instalado
 
-🎯 Objetivos
+### Passo a Passo
 
-- Automatizar o reconhecimento de produtos com visão computacional
+**1. Instale as dependências:**
+```bash
+pip install -r requirements.txt
+```
 
-- Reduzir atrasos e erros operacionais
+Ou rode o setup automático:
+```bash
+python setup.py
+```
 
-- Garantir inventário atualizado em tempo real
+**2. Inicie o servidor:**
+```bash
+python app.py
+```
 
-- Melhorar a eficiência logística e apoiar a tomada de decisão
+**3. Acesse no navegador:**
+```
+http://localhost:5000
+```
 
-⚙️ Funcionalidades:
+> **Recomendamos o Google Chrome** para melhor compatibilidade com a câmera QR Code.
 
-📸 Captura automática de imagens/vídeos em pontos estratégicos
+---
 
-🔍 Detecção e identificação de produtos via algoritmos de visão computacional
+## 🔑 Como Usar
 
-🗂️ Classificação inteligente dos itens com base em banco de dados cadastrado
+### Criando a primeira conta
+1. Acesse `http://localhost:5000`
+2. Preencha o formulário de **Cadastro**
+3. Escolha o perfil:
+   - 👷 **Funcionário** → acessa o Dashboard de movimentações
+   - 🛡️ **Administrador** → acessa o Painel Admin com relatórios Excel
+4. Digite o código de verificação enviado ao e-mail
+5. Você será redirecionado automaticamente para o painel correto
 
-✅ Registro automático de entradas e saídas
+### Funcionário (`/dashboard`)
+- Registrar **entradas** e **saídas** de produtos
+- Usar a **câmera** (botão azul no canto inferior direito) para ler QR Codes
+- Visualizar movimentações e alertas de estoque baixo
+- Cada movimentação gera automaticamente um **QR Code PNG** para download
 
-📊 Atualização instantânea do inventário
+### Administrador (`/admin`)
+- Tudo que o funcionário faz, mais:
+- **Aba Alertas** → ver produtos críticos e cadastrar fornecedores
+- **Aba Produtos** → lista completa com edição de fornecedores
+- **Aba Usuários** → ver todos os cadastros do sistema
+- **Aba Relatórios** → gerar planilha **Excel real (.xlsx)** com:
+  - Movimentações (com filtro de período)
+  - Estoque atual
+  - Produtos críticos
+  - Usuários cadastrados
 
-🖥️ Painel de monitoramento para acompanhamento das movimentações
+---
 
-👥 Atores do Sistema
-O Apollo Project foi desenhado para atender diferentes perfis de usuários dentro da empresa:
+## 📷 Câmera / QR Code
 
-- Funcionários:
+O sistema usa a câmera do navegador (sem instalar nada extra):
 
-Realizam movimentações de produtos (entrada/saída)
+1. Clique no botão de câmera 📷 no canto inferior direito
+2. Autorize o acesso à câmera quando o browser pedir
+3. Aponte para o QR Code do produto
+4. O sistema detecta automaticamente e:
+   - Mostra os dados do produto (nome, código, categoria, estoque atual)
+   - Oferece os botões **Registrar Entrada** ou **Registrar Saída**
+   - Ao clicar, vai direto ao formulário com os campos preenchidos
 
-Interagem com o sistema de forma prática e automatizada
+---
 
-Não precisam registrar manualmente, pois o sistema reconhece e atualiza automaticamente
+## 📊 Relatório Excel
 
-- Administradores:
+Gerado pelo servidor Python usando **openpyxl** com:
+- Formatação profissional (cores, bordas, larguras de coluna ajustadas)
+- Aba de Movimentações com histórico completo
+- Aba de Estoque com status (OK ✅ / Baixo ⚠️ / Zerado 🔴)
+- Aba de Alertas com produtos críticos
+- Aba de Usuários com perfis
 
-Têm acesso ao painel de monitoramento completo
+> O botão de gerar Excel **só aparece no painel Admin**.
 
-Gerenciam o banco de dados de produtos cadastrados
+---
 
-Acompanham relatórios e métricas em tempo real
+## 🗄️ Banco de Dados
 
-Controlam permissões e configuram o sistema conforme as necessidades da empresa
+O banco `apollo.db` (SQLite) é criado automaticamente ao rodar `python app.py`.  
+Não precisa instalar nenhum banco de dados externo.
 
-🌟 Benefícios
+**Tabelas:**
+| Tabela | Descrição |
+|--------|-----------|
+| `usuarios` | Contas cadastradas com hash de senha |
+| `codigos_verificacao` | Códigos temporários de e-mail |
+| `estoque` | Produtos e quantidades atuais |
+| `movimentacoes` | Histórico de entradas e saídas |
 
-- Automação completa do processo de controle de estoque
+---
 
-- Redução significativa de erros humanos
+## 🌐 Rotas da API
 
-- Informações precisas e confiáveis para gestão
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET  | `/` | Página inicial |
+| GET  | `/dashboard` | Dashboard funcionário |
+| GET  | `/admin` | Painel admin |
+| POST | `/api/auth/cadastro/solicitar` | Etapa 1 do cadastro |
+| POST | `/api/auth/cadastro/verificar` | Verificar código e criar conta |
+| POST | `/api/auth/cadastro/reenviar` | Reenviar código |
+| POST | `/api/auth/login` | Login |
+| POST | `/api/auth/logout` | Logout |
+| GET  | `/api/auth/sessao` | Verificar sessão ativa |
+| GET  | `/api/resumo` | Cards do dashboard |
+| POST | `/api/movimentacao` | Registrar entrada/saída |
+| GET  | `/api/movimentacoes` | Listar movimentações |
+| GET  | `/api/estoque` | Listar todos os produtos |
+| GET  | `/api/estoque/<codigo>` | Buscar produto por código |
+| PUT  | `/api/estoque/fornecedor` | Atualizar fornecedor (admin) |
+| GET  | `/api/alertas` | Produtos com estoque baixo |
+| GET  | `/api/usuarios` | Listar usuários (admin) |
+| GET  | `/api/relatorio/excel` | Gerar planilha Excel (admin) |
+| POST | `/api/qrcode/gerar` | Gerar QR Code PNG |
 
-- Interface moderna e intuitiva
+---
 
-- Escalabilidade para empresas de diferentes portes
+## 📧 E-mail de Verificação (EmailJS)
 
-🛠️ Tecnologias
+O sistema usa **EmailJS** para enviar o código de verificação no cadastro.  
+As chaves já estão configuradas no `apollo-landing.html`.
 
-- Python & frameworks (backend principal)
+Se o e-mail não chegar, o código também aparece no **terminal do servidor** (linha `[Apollo] Código de verificação para ...`), útil para testes.
 
-- Visão Computacional para reconhecimento de produtos
+---
 
-- Banco de Dados para classificação e registro
+## 👥 Equipe
 
-- Interface Web para monitoramento e gestão
+| Nome | Função |
+|------|--------|
+| José Reis | Front-end |
+| Vinicius Marques | Back-end |
+| Carla Rio | Back-end / Excel |
+| Lauro Aguiar | Back-end / Banco de dados |
+| Pedro Antônio | Visão Computacional |
 
-📈 Impacto Esperado
+---
 
-O Apollo Project não é apenas um sistema de estoque: é uma ferramenta estratégica que ajuda empresas a evoluírem sua gestão logística, 
-reduzirem custos operacionais e aumentarem sua competitividade no mercado.
+## 🛠️ Tecnologias
 
+- **Backend:** Python 3 + Flask
+- **Banco de dados:** SQLite (via módulo `sqlite3`)
+- **Planilha Excel:** openpyxl
+- **QR Code:** qrcode + Pillow (servidor) / jsQR (browser)
+- **Autenticação:** Werkzeug password hashing + Flask sessions
+- **E-mail:** EmailJS (verificação de cadastro)
+- **Frontend:** HTML5 + CSS3 + JavaScript puro (sem frameworks)
+
+---
+
+*© 2026 Apollo Logística — PIEC-1*
