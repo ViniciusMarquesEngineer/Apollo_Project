@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apollo — Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+  <style>
+    :root{--navy:#0a1f44;--navy2:#132c63;--blue:#2563eb;--green:#15803d;--red:#b91c1c;--amber:#b45309;--muted:#a8c0e8;--surface:#f0f2f7;}
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif;}
+    body{background:var(--surface);}
+
+    .topbar{background:var(--navy);color:white;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;}
+    .topbar-left{display:flex;align-items:center;gap:12px;}
+    .topbar h1{font-size:20px;font-weight:700;letter-spacing:.5px;}
+    .topbar-tag{background:var(--navy2);color:var(--muted);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+    .topbar-right{display:flex;align-items:center;gap:10px;}
+    .user-chip{display:flex;align-items:center;gap:8px;background:var(--navy2);padding:6px 12px;border-radius:8px;}
+    .u-av{width:26px;height:26px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+    .u-name{font-size:13px;font-weight:600;color:#e2eaff;}
+    .btn-sm{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.2);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;transition:all .2s;}
+    .btn-sm:hover{background:rgba(255,255,255,.1);color:white;}
+
+    .fab-camera{position:fixed;bottom:28px;right:28px;z-index:500;width:58px;height:58px;border-radius:50%;background:var(--navy);border:2px solid #2563eb;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,99,235,.4);transition:transform .2s;}
+    .fab-camera:hover{transform:scale(1.08);}
+    .fab-camera svg{width:26px;height:26px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+    .page{padding:22px 28px;}
+    .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+    .card{background:white;border-radius:12px;padding:18px 20px;border:.5px solid #e2e8f0;}
+    .card-label{font-size:11px;color:#64748b;font-weight:700;letter-spacing:.5px;margin-bottom:8px;}
+    .card-value{font-size:28px;font-weight:700;color:var(--navy);}
+    .card-sub{font-size:12px;margin-top:4px;color:#64748b;}
+    .green .card-value{color:var(--green);}.red .card-value{color:var(--red);}.amber .card-value{color:var(--amber);}
+
+    .sec{background:white;border-radius:12px;border:.5px solid #e2e8f0;margin-bottom:20px;overflow:hidden;}
+    .sec-head{padding:14px 20px;border-bottom:.5px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .sec-head h2{font-size:15px;font-weight:700;color:var(--navy);}
+
+    .form-body{padding:20px;}
+    .form-hint{font-size:13px;color:#64748b;margin-bottom:14px;padding:10px 14px;background:#f0f4ff;border-radius:8px;border:.5px solid #c7d7f5;}
+    .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+    .field{display:flex;flex-direction:column;gap:4px;}
+    .field label{font-size:11px;font-weight:700;color:#374151;letter-spacing:.3px;}
+    .field input{padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;color:#111;outline:none;transition:border-color .2s;}
+    .field input:focus{border-color:var(--blue);}
+    .form-btns{display:flex;gap:10px;flex-wrap:wrap;}
+    .btn-entrada{background:var(--green);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}
+    .btn-saida  {background:var(--red);  color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}
+    .btn-entrada:hover{background:#166534;}.btn-saida:hover{background:#991b1b;}
+    .btn-entrada:disabled,.btn-saida:disabled{opacity:.55;cursor:not-allowed;}
+    .btn-gerar-qr{display:none;align-items:center;gap:7px;background:#1e3a6e;color:white;border:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;}
+    .btn-gerar-qr:hover{background:#0a1f44;}
+    .btn-gerar-qr svg{width:16px;height:16px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+    .tbl-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:#f8fafc;padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;letter-spacing:.4px;border-bottom:.5px solid #e2e8f0;}
+    td{padding:11px 16px;font-size:13px;color:#1e293b;border-bottom:.5px solid #f1f5f9;}
+    tr:last-child td{border-bottom:none;}tr:hover td{background:#f8fafc;}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .badge-in{background:#dcfce7;color:var(--green);}.badge-out{background:#fee2e2;color:var(--red);}
+    .tag-low{color:var(--red);font-weight:700;}.tag-ok{color:var(--green);font-weight:600;}
+
+    .alerta-list{padding:4px 20px 8px;}
+    .alerta-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:.5px solid #f1f5f9;}
+    .alerta-item:last-child{border-bottom:none;}
+    .alerta-info{display:flex;align-items:center;gap:12px;}
+    .dot{width:10px;height:10px;border-radius:50%;}
+    .dot-r{background:#ef4444;}.dot-a{background:#f59e0b;}
+    .alerta-name{font-size:14px;font-weight:600;color:var(--navy);}
+    .alerta-cat{font-size:12px;color:#64748b;}
+    .alerta-qty{font-size:14px;font-weight:700;color:var(--red);}
+
+    /* OVERLAYS */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;align-items:center;justify-content:center;}
+    .overlay.open{display:flex;}
+
+    .cam-box{background:var(--navy);border-radius:18px;padding:28px;width:100%;max-width:440px;position:relative;}
+    .cam-title{color:white;font-size:16px;font-weight:700;margin-bottom:4px;}
+    .cam-sub{color:var(--muted);font-size:13px;margin-bottom:16px;}
+    .cam-wrap{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;}
+    #cam-video{width:100%;height:100%;object-fit:cover;display:block;}
+    #cam-canvas{display:none;}
+    .cam-overlay-ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+    .cam-frame{width:180px;height:180px;position:relative;}
+    .cam-frame::before,.cam-frame::after,.cfbr,.cfbl{content:'';position:absolute;width:28px;height:28px;border-color:#38bdf8;border-style:solid;}
+    .cam-frame::before{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+    .cam-frame::after{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+    .cfbr{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+    .cfbl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
+    .scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#38bdf8,transparent);animation:scanAnim 2s linear infinite;}
+    @keyframes scanAnim{0%{top:20%}100%{top:80%}}
+    .cam-status{margin-top:12px;font-size:13px;font-weight:600;text-align:center;}
+    .cam-status.s{color:var(--muted);}.cam-status.f{color:#4ade80;}.cam-status.e{color:#f87171;}
+    .x-close{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.12);border:none;color:white;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+    .prod-box{background:white;border-radius:16px;padding:32px 28px;max-width:380px;width:100%;text-align:center;}
+    .prod-box h3{color:var(--navy);font-size:18px;font-weight:700;margin-bottom:6px;}
+    .prod-box p{color:#64748b;font-size:14px;margin-bottom:8px;line-height:1.6;}
+    .prod-cod{display:inline-block;background:#e0eaff;color:var(--navy);font-family:monospace;font-size:13px;font-weight:700;padding:4px 12px;border-radius:6px;margin-bottom:16px;}
+    .prod-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
+    .btn-nav{background:var(--navy);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+    .btn-nav:hover{background:var(--navy2);}
+    .btn-nav-sec{background:#f1f5f9;color:#374151;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+
+    .logout-box{background:white;border-radius:16px;padding:32px 28px;max-width:340px;width:100%;text-align:center;}
+    .logout-box h3{color:var(--navy);font-size:18px;font-weight:700;margin-bottom:8px;}
+    .logout-box p{color:#64748b;font-size:14px;margin-bottom:22px;}
+    .row-btns{display:flex;gap:10px;justify-content:center;}
+    .btn-cancel{background:#f1f5f9;color:#374151;border:none;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}
+    .btn-danger{background:var(--red);color:white;border:none;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}
+
+    .toast{display:none;position:fixed;bottom:100px;right:28px;z-index:800;background:white;border-radius:14px;padding:16px 38px 16px 16px;box-shadow:0 8px 32px rgba(0,0,0,.16);border:.5px solid #e2e8f0;max-width:280px;}
+    .toast.show{display:flex;gap:12px;align-items:flex-start;animation:slideUp .3s ease;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .t-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+    .t-body h4{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:2px;}
+    .t-body p{font-size:12px;color:#64748b;line-height:1.5;}
+    .t-close{position:absolute;top:8px;right:10px;background:none;border:none;font-size:15px;color:#94a3b8;cursor:pointer;}
+
+    #qr-render{display:none;}
+    footer{background:var(--navy);color:var(--muted);text-align:center;padding:16px;font-size:13px;}
+    footer span{color:white;font-weight:600;}
+
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;margin-right:6px;vertical-align:middle;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media(max-width:700px){.cards{grid-template-columns:repeat(2,1fr);}.form-grid{grid-template-columns:1fr;}.page{padding:14px;}.u-name{display:none;}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>APOLLO</h1>
+    <span class="topbar-tag">FUNCIONÁRIO</span>
+    <span id="data-atual" style="font-size:12px;color:var(--muted)"></span>
+  </div>
+  <div class="topbar-right">
+    <div class="user-chip">
+      <div class="u-av" id="u-av">?</div>
+      <span class="u-name" id="u-name">Usuário</span>
+    </div>
+    <button class="btn-sm" onclick="abrirLogout()">Sair</button>
+  </div>
+</div>
+
+<div class="page">
+  <div class="cards">
+    <div class="card">         <div class="card-label">TOTAL DE PRODUTOS</div><div class="card-value" id="c-total">—</div><div class="card-sub">itens cadastrados</div></div>
+    <div class="card green">  <div class="card-label">ENTRADAS HOJE</div>    <div class="card-value" id="c-ent">—</div>  <div class="card-sub">unidades recebidas</div></div>
+    <div class="card red">    <div class="card-label">SAÍDAS HOJE</div>      <div class="card-value" id="c-sai">—</div>  <div class="card-sub">unidades despachadas</div></div>
+    <div class="card amber">  <div class="card-label">ESTOQUE BAIXO</div>    <div class="card-value" id="c-low">—</div>  <div class="card-sub">abaixo do mínimo</div></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><h2>Registrar movimentação</h2></div>
+    <div class="form-body">
+      <div class="form-hint">📷 Use o botão de câmera (canto inferior direito) para ler um QR Code e preencher os campos automaticamente.</div>
+      <div class="form-grid">
+        <div class="field"><label>CÓDIGO</label>          <input type="text"   id="f-cod"  placeholder="PRD-001" onblur="buscarProdutoPorCodigo()" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="field"><label>NOME DO PRODUTO</label> <input type="text"   id="f-nome" placeholder="Ex: Caixa de papelão"></div>
+        <div class="field"><label>CATEGORIA</label>       <input type="text"   id="f-cat"  placeholder="Ex: Embalagens"></div>
+        <div class="field"><label>QUANTIDADE</label>      <input type="number" id="f-qtd"  placeholder="0" min="1"></div>
+        <div class="field"><label>DATA</label>            <input type="date"   id="f-data"></div>
+        <div class="field"><label>ESTOQUE MÍNIMO</label>  <input type="number" id="f-min"  placeholder="0" min="0"></div>
+      </div>
+      <div class="form-btns">
+        <button class="btn-entrada" id="btn-entrada" onclick="registrar('entrada')">+ Registrar Entrada</button>
+        <button class="btn-saida"   id="btn-saida"   onclick="registrar('saida')">− Registrar Saída</button>
+        <button class="btn-gerar-qr" id="btn-gerar-qr" onclick="gerarQRManual()">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01M20 14h.01M20 17h.01M17 20h.01M20 20h.01"/></svg>
+          Gerar QR Code
+        </button>
+      </div>
+      <div id="msg-form" style="margin-top:10px;font-size:13px;font-weight:600;min-height:16px"></div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-alerts" style="display:none">
+    <div class="sec-head">
+      <h2>⚠️ Estoque baixo</h2>
+      <span style="font-size:12px;color:var(--red);font-weight:700" id="alert-count"></span>
+    </div>
+    <div class="alerta-list" id="alert-list"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
+      <h2>Movimentações</h2>
+      <div style="display:flex;gap:8px">
+        <select id="f-tipo" onchange="carregarMovimentacoes()" style="font-size:12px;padding:5px 10px;border:.5px solid #d1d5db;border-radius:6px;color:#374151;background:white">
+          <option value="">Todos</option><option value="entrada">Entradas</option><option value="saida">Saídas</option>
+        </select>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Código</th><th>Produto</th><th>Categoria</th><th>Tipo</th><th>Qtd</th><th>Estoque</th><th>Data</th></tr></thead>
+        <tbody id="tbl-body"><tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:28px">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- FAB CÂMERA -->
+<button class="fab-camera" onclick="abrirCamera()" title="Ler QR Code">
+  <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+</button>
+
+<!-- MODAL CÂMERA -->
+<div class="overlay" id="ov-cam">
+  <div class="cam-box">
+    <button class="x-close" onclick="fecharCamera()">✕</button>
+    <div class="cam-title">📷 Câmera — Leitor QR Code</div>
+    <div class="cam-sub">Aponte para o QR Code do produto</div>
+    <div class="cam-wrap">
+      <video id="cam-video" autoplay playsinline muted></video>
+      <canvas id="cam-canvas"></canvas>
+      <div class="cam-overlay-ui">
+        <div class="cam-frame"><div class="cfbr"></div><div class="cfbl"></div><div class="scan-line"></div></div>
+      </div>
+    </div>
+    <div class="cam-status s" id="cam-st">🔍 Procurando QR Code...</div>
+  </div>
+</div>
+
+<!-- MODAL PRODUTO QR -->
+<div class="overlay" id="ov-prod">
+  <div class="prod-box">
+    <div style="font-size:40px;margin-bottom:12px">📦</div>
+    <h3 id="prod-nome">Produto encontrado</h3>
+    <div class="prod-cod" id="prod-cod">PRD-000</div>
+    <p id="prod-info">Categoria: —</p>
+    <p id="prod-estoque" style="font-weight:700;font-size:15px;color:var(--navy)">Estoque atual: —</p>
+    <div class="prod-btns">
+      <button class="btn-nav" onclick="irParaProduto('entrada')">+ Registrar Entrada</button>
+      <button class="btn-nav" onclick="irParaProduto('saida')" style="background:var(--red)">− Registrar Saída</button>
+      <button class="btn-nav-sec" onclick="fecharProd()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOGOUT -->
+<div class="overlay" id="ov-logout">
+  <div class="logout-box">
+    <h3>Sair da plataforma?</h3>
+    <p>Você será redirecionado para a página inicial.</p>
+    <div class="row-btns">
+      <button class="btn-cancel" onclick="fecharLogout()">Cancelar</button>
+      <button class="btn-danger"  onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <button class="t-close" onclick="fecharToast()">✕</button>
+  <div class="t-icon" id="toast-icon">✅</div>
+  <div class="t-body"><h4 id="toast-titulo">Sucesso</h4><p id="toast-desc"></p></div>
+</div>
+<div id="qr-render"></div>
+
+<footer><p>© 2026 <span>Apollo Logística</span> — Todos os direitos reservados</p></footer>
+
+<script>
+// ── AUTH GUARD ────────────────────────────────────────────────────────────────
+let USUARIO = '';
+(async function() {
+  const r = await fetch('/api/auth/sessao');
+  if (!r.ok) { window.location.replace('/'); return; }
+  const d = await r.json();
+  if (!d.ok) { window.location.replace('/'); return; }
+  if (d.dados.role === 'admin') { window.location.replace('/admin'); return; }
+  USUARIO = d.dados.usuario;
+  document.getElementById('u-name').textContent = USUARIO;
+  document.getElementById('u-av').textContent   = USUARIO.charAt(0).toUpperCase();
+  iniciar();
+})();
+
+// ── INICIAR ───────────────────────────────────────────────────────────────────
+const hoje = new Date();
+document.getElementById('data-atual').textContent = hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+document.getElementById('f-data').value = hoje.toISOString().split('T')[0];
+
+async function iniciar() {
+  await Promise.all([carregarResumo(), carregarAlertas(), carregarMovimentacoes()]);
+}
+
+// ── API CALLS ─────────────────────────────────────────────────────────────────
+async function carregarResumo() {
+  const r = await fetch('/api/resumo');
+  const d = await r.json();
+  if (!d.ok) return;
+  const s = d.dados;
+  document.getElementById('c-total').textContent = s.total_produtos;
+  document.getElementById('c-ent').textContent   = s.entradas_hoje;
+  document.getElementById('c-sai').textContent   = s.saidas_hoje;
+  document.getElementById('c-low').textContent   = s.estoque_baixo;
+}
+
+async function carregarAlertas() {
+  const r = await fetch('/api/alertas');
+  const d = await r.json();
+  if (!d.ok) return;
+  const lista = d.dados;
+  const sec   = document.getElementById('sec-alerts');
+  if (!lista.length) { sec.style.display='none'; return; }
+  sec.style.display='block';
+  document.getElementById('alert-count').textContent = lista.length + ' produto(s)';
+  document.getElementById('alert-list').innerHTML = lista.map(p => `
+    <div class="alerta-item">
+      <div class="alerta-info">
+        <div class="dot ${p.quantidade_atual===0?'dot-r':'dot-a'}"></div>
+        <div>
+          <div class="alerta-name">${p.nome}</div>
+          <div class="alerta-cat">${p.codigo} · ${p.categoria}</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="alerta-qty">${p.quantidade_atual} un.</div>
+        <div style="font-size:11px;color:#94a3b8">mín: ${p.estoque_minimo}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function carregarMovimentacoes() {
+  const tipo = document.getElementById('f-tipo').value;
+  let url = '/api/movimentacoes?';
+  if (tipo) url += `tipo=${tipo}&`;
+  const r = await fetch(url);
+  const d = await r.json();
+  const b = document.getElementById('tbl-body');
+  if (!d.ok || !d.dados.length) {
+    b.innerHTML='<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:28px">Sem movimentações.</td></tr>';
+    return;
+  }
+  b.innerHTML = d.dados.map(m => `
+    <tr>
+      <td style="font-family:monospace;font-size:12px;color:#64748b">${m.codigo_produto}</td>
+      <td style="font-weight:600">${m.nome_produto}</td>
+      <td>${m.categoria}</td>
+      <td><span class="badge ${m.tipo==='entrada'?'badge-in':'badge-out'}">${m.tipo==='entrada'?'▲ Entrada':'▼ Saída'}</span></td>
+      <td style="font-weight:700">${m.quantidade}</td>
+      <td class="${m.estoque_apos<=0?'tag-low':'tag-ok'}">${m.estoque_apos}</td>
+      <td style="color:#64748b">${new Date(m.data+'T12:00:00').toLocaleDateString('pt-BR')}</td>
+    </tr>`).join('');
+}
+
+// ── AUTO-PREENCHIMENTO ao digitar o código ────────────────────────────────────
+async function buscarProdutoPorCodigo() {
+  const cod = document.getElementById('f-cod').value.trim().toUpperCase();
+  if (!cod) return;
+  try {
+    const r = await fetch('/api/estoque/' + encodeURIComponent(cod));
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.ok) return;
+    const p = d.dados;
+    // Preenche apenas campos vazios para não sobrescrever o que o usuário digitou
+    if (!document.getElementById('f-nome').value) document.getElementById('f-nome').value = p.nome;
+    if (!document.getElementById('f-cat').value)  document.getElementById('f-cat').value  = p.categoria;
+    // Estoque mínimo sempre vem do banco (é o valor salvo)
+    document.getElementById('f-min').value = p.estoque_minimo;
+    // Mostra estoque atual como dica
+    const msg = document.getElementById('msg-form');
+    msg.innerHTML = `📦 Produto encontrado — Estoque atual: <strong>${p.quantidade_atual} un.</strong>`;
+    msg.style.color = '#1e3a6e';
+    setTimeout(() => { if(msg.style.color === 'rgb(30, 58, 110)') msg.textContent = ''; }, 3000);
+  } catch(e) {}
+}
+
+// ── REGISTRAR MOVIMENTAÇÃO ────────────────────────────────────────────────────
+async function registrar(tipo) {
+  const cod  = document.getElementById('f-cod').value.trim();
+  const nome = document.getElementById('f-nome').value.trim();
+  const cat  = document.getElementById('f-cat').value.trim();
+  const qtd  = parseInt(document.getElementById('f-qtd').value);
+  const data = document.getElementById('f-data').value;
+  const min  = parseInt(document.getElementById('f-min').value) || 0;
+  const msg  = document.getElementById('msg-form');
+  const btnE = document.getElementById('btn-entrada');
+  const btnS = document.getElementById('btn-saida');
+
+  if (!cod||!nome||!cat||!qtd||qtd<1||!data) { setMsg(msg,'Preencha todos os campos.','r'); return; }
+
+  btnE.disabled=btnS.disabled=true;
+  setMsg(msg,'<span class="spinner"></span>Registrando...','n');
+
+  const r = await fetch('/api/movimentacao', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ codigo:cod, nome, categoria:cat, tipo, quantidade:qtd, data, estoque_minimo:min })
+  });
+  const d = await r.json();
+  btnE.disabled=btnS.disabled=false;
+
+  if (!d.ok) { setMsg(msg, d.erro,'r'); return; }
+
+  setMsg(msg, tipo==='entrada'?'✅ Entrada registrada!':'✅ Saída registrada!', tipo==='entrada'?'g':'r');
+  setTimeout(()=>msg.textContent='',2500);
+
+  // Salva dados do último registro para geração de QR sob demanda
+  ultimoRegistro = { cod, nome, cat: document.getElementById('f-cat').value.trim(),
+    tipo, qtd, atual: d.dados?.estoque_atual ?? 0,
+    min: parseInt(document.getElementById('f-min').value)||0, data };
+  document.getElementById('btn-gerar-qr').style.display = 'inline-flex';
+
+  ['f-cod','f-nome','f-cat','f-qtd','f-min'].forEach(id=>document.getElementById(id).value='');
+  await Promise.all([carregarResumo(), carregarAlertas(), carregarMovimentacoes()]);
+}
+
+// ── CÂMERA ────────────────────────────────────────────────────────────────────
+let stream=null, scanIv=null, dadosQR=null, ultimoRegistro=null;
+
+function abrirCamera() {
+  document.getElementById('ov-cam').classList.add('open');
+  const st = document.getElementById('cam-st');
+  st.className = 'cam-status s';
+  st.textContent = '🔍 Iniciando câmera...';
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    st.className = 'cam-status e';
+    st.textContent = '❌ Câmera não suportada neste navegador.';
+    return;
+  }
+
+  // Async/await limpo — sem cadeia de promises bugada
+  (async () => {
+    const tentativas = [
+      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+      { video: { facingMode: 'user' } },
+      { video: true }
+    ];
+
+    let s = null;
+    for (const constraints of tentativas) {
+      try {
+        s = await navigator.mediaDevices.getUserMedia(constraints);
+        break;   // conseguiu — sai do loop
+      } catch(e) {
+        // tenta próxima configuração
+      }
+    }
+
+    if (!s) {
+      st.className = 'cam-status e';
+      st.textContent = '❌ Câmera não encontrada ou permissão negada.';
+      return;
+    }
+
+    stream = s;
+    const v = document.getElementById('cam-video');
+    v.srcObject = s;
+
+    try { await v.play(); } catch(e) {}
+
+    // Aguarda metadados do vídeo antes de iniciar o scan
+    await new Promise(resolve => {
+      if (v.readyState >= 1) { resolve(); return; }
+      v.addEventListener('loadedmetadata', resolve, { once: true });
+    });
+
+    st.className = 'cam-status s';
+    st.textContent = '🔍 Procurando QR Code...';
+    iniciarScan();
+  })();
+}
+
+function iniciarScan() {
+  const v   = document.getElementById('cam-video');
+  const c   = document.getElementById('cam-canvas');
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  const st  = document.getElementById('cam-st');
+  let jaProcessou = false;
+  let frames = 0;
+
+  // BarcodeDetector: API nativa do Edge/Chrome — mais rápida e confiável
+  if ('BarcodeDetector' in window) {
+    let detector;
+    try {
+      detector = new BarcodeDetector({ formats: ['qr_code'] });
+    } catch(e) {
+      detector = null;
+    }
+
+    if (detector) {
+      scanIv = setInterval(async () => {
+        if (jaProcessou) return;
+        if (v.readyState < 2) return;
+        if (v.videoWidth === 0 || v.paused || v.ended) return;
+
+        frames++;
+        if (frames % 5 === 0) {
+          st.textContent = '🔍 Procurando QR Code' + '.'.repeat(frames % 4);
+        }
+
+        try {
+          const results = await detector.detect(v);
+          if (results.length > 0 && results[0].rawValue) {
+            jaProcessou = true;
+            st.className = 'cam-status f';
+            st.textContent = '✅ QR Code detectado!';
+            processarQR(results[0].rawValue);
+          }
+        } catch(e) { /* frame não pronto ainda */ }
+      }, 150);
+      return;
+    }
+  }
+
+  // Fallback: jsQR via Canvas (Firefox, Safari, Edge antigo)
+  scanIv = setInterval(() => {
+    if (jaProcessou) return;
+    if (v.readyState < 2) return;
+    if (v.videoWidth === 0 || v.videoHeight === 0 || v.paused || v.ended) return;
+
+    c.width  = v.videoWidth;
+    c.height = v.videoHeight;
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+
+    let img;
+    try { img = ctx.getImageData(0, 0, c.width, c.height); }
+    catch(e) { return; }
+
+    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+
+    frames++;
+    if (frames % 10 === 0) {
+      st.textContent = '🔍 Procurando QR Code' + '.'.repeat(frames % 4);
+    }
+
+    if (code && code.data) {
+      jaProcessou = true;
+      st.className = 'cam-status f';
+      st.textContent = '✅ QR Code detectado!';
+      processarQR(code.data);
+    }
+  }, 100);
+}
+
+
+async function processarQR(txt) {
+  pararCam();
+  const st=document.getElementById('cam-st');
+  st.className='cam-status f'; st.textContent='✅ QR Code lido!';
+
+  const get=(k)=>{
+    const l=txt.split('\n').find(x=>x.toLowerCase().startsWith(k.toLowerCase()));
+    return l?l.split(':').slice(1).join(':').trim():'';
+  };
+  const cod  = get('Codigo');
+  const nome = get('Produto');
+  const cat  = get('Categoria');
+  const min  = get('Estoque minimo');
+
+  dadosQR = { cod, nome, cat, min };
+
+  // Busca dados atuais do produto no backend
+  let prodInfo = null;
+  if (cod) {
+    try {
+      const r = await fetch(`/api/estoque/${encodeURIComponent(cod)}`);
+      const d = await r.json();
+      if (d.ok) prodInfo = d.dados;
+    } catch(e) {}
+  }
+
+  setTimeout(() => {
+    fecharCamera();
+    if (cod || nome) {
+      document.getElementById('prod-nome').textContent = nome || 'Produto via QR Code';
+      document.getElementById('prod-cod').textContent  = cod  || '—';
+      document.getElementById('prod-info').textContent = `Categoria: ${cat || '—'}`;
+      document.getElementById('prod-estoque').textContent = prodInfo
+        ? `Estoque atual: ${prodInfo.quantidade_atual} un. (mín: ${prodInfo.estoque_minimo})`
+        : 'Produto novo — não cadastrado ainda.';
+      document.getElementById('ov-prod').classList.add('open');
+    } else {
+      document.getElementById('f-nome').value = txt;
+    }
+  }, 600);
+}
+
+function irParaProduto(tipo) {
+  fecharProd();
+  if (!dadosQR) return;
+  if (dadosQR.cod)  document.getElementById('f-cod').value  = dadosQR.cod;
+  if (dadosQR.nome) document.getElementById('f-nome').value = dadosQR.nome;
+  if (dadosQR.cat)  document.getElementById('f-cat').value  = dadosQR.cat;
+  if (dadosQR.min)  document.getElementById('f-min').value  = dadosQR.min;
+  document.querySelector('.sec').scrollIntoView({behavior:'smooth'});
+  setTimeout(()=>document.getElementById('f-qtd').focus(),400);
+  const btn = tipo==='entrada'?document.getElementById('btn-entrada'):document.getElementById('btn-saida');
+  btn.style.outline='3px solid #38bdf8';
+  setTimeout(()=>btn.style.outline='',2000);
+}
+
+function pararCam(){clearInterval(scanIv);scanIv=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
+function fecharCamera(){pararCam();document.getElementById('ov-cam').classList.remove('open');try{document.getElementById('cam-video').srcObject=null;}catch(e){}}
+function fecharProd(){document.getElementById('ov-prod').classList.remove('open');dadosQR=null;}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+function abrirLogout(){document.getElementById('ov-logout').classList.add('open');}
+function fecharLogout(){document.getElementById('ov-logout').classList.remove('open');}
+async function fazerLogout(){
+  await fetch('/api/auth/logout',{method:'POST'});
+  window.location.href='/';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastTimer=null;
+function mostrarToast(icon,titulo,desc,iconBg='#dcfce7'){
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-icon').style.background=iconBg;
+  document.getElementById('toast-titulo').textContent=titulo;
+  document.getElementById('toast-desc').textContent=desc;
+  document.getElementById('toast').classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(fecharToast,5000);
+}
+function fecharToast(){document.getElementById('toast').classList.remove('show');}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharCamera();fecharLogout();fecharProd();}});
+
+function setMsg(el,txt,tipo){
+  el.innerHTML=txt;
+  el.style.color=tipo==='r'?'#b91c1c':tipo==='g'?'#15803d':'#374151';
+}
+
+// ── QR CODE — BOTÃO MANUAL ────────────────────────────────────────────────────
+// O QR grava os dados CADASTRAIS do produto (código, nome, categoria, mínimo).
+// Ao ser escaneado pela câmera, preenche automaticamente todos os campos do formulário.
+function gerarQRManual() {
+  const cod  = document.getElementById('f-cod').value.trim();
+  const nome = document.getElementById('f-nome').value.trim();
+  const cat  = document.getElementById('f-cat').value.trim();
+  const min  = document.getElementById('f-min').value.trim() || '0';
+
+  if (!cod || !nome) {
+    mostrarToast('⚠️','Campos incompletos','Preencha pelo menos o Código e o Nome antes de gerar o QR.','#fef9c3');
+    return;
+  }
+
+  // Formato que o processarQR() sabe ler — apenas dados fixos do produto
+  const linhas = [
+    'APOLLO LOGISTICA',
+    'Codigo: ' + cod,
+    'Produto: ' + nome,
+    'Categoria: ' + cat,
+    'Estoque minimo: ' + min
+  ];
+  const txt = linhas.join('\n');
+
+  const wrap = document.getElementById('qr-render');
+  wrap.innerHTML = '';
+  try {
+    new QRCode(wrap, {
+      text: txt, width: 320, height: 320,
+      colorDark: '#0a1f44', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    setTimeout(() => {
+      const el = wrap.querySelector('img') || wrap.querySelector('canvas');
+      if (!el) return;
+      const url = el.tagName === 'IMG' ? el.src : el.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'QR_' + cod + '_' + nome.replace(/\s+/g,'_') + '.png';
+      a.click();
+      mostrarToast('✅','QR Code gerado!',
+        'Etiqueta de "' + nome + '" baixada. Cole na embalagem — ao escanear, os campos serão preenchidos automaticamente.',
+        '#dcfce7');
+    }, 400);
+  } catch(e) {
+    console.warn('QRCode.js falhou:', e);
+    mostrarToast('❌','Erro','Não foi possível gerar o QR Code.','#fee2e2');
+  }
+}
+
+
+// ── QR CODE FALLBACK (JS puro, quando servidor não tem o módulo qrcode) ───────
+function gerarQRjsFallback({cod, nome, cat, tipo, qtd, atual, min, data}) {
+  const dt  = new Date(data+'T12:00:00').toLocaleDateString('pt-BR');
+  const txt = `APOLLO LOGISTICA\nCodigo: ${cod}\nProduto: ${nome}\nCategoria: ${cat}\nTipo: ${tipo.toUpperCase()}\nQuantidade: ${qtd}\nEstoque atual: ${atual}\nEstoque minimo: ${min}\nData: ${dt}`;
+  const wrap = document.getElementById('qr-render');
+  wrap.innerHTML = '';
+  try {
+    new QRCode(wrap, {
+      text: txt, width: 300, height: 300,
+      colorDark: '#0a1f44', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    setTimeout(() => {
+      const el = wrap.querySelector('img') || wrap.querySelector('canvas');
+      if (!el) return;
+      const url = el.tagName === 'IMG' ? el.src : el.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `qr_${cod}_${tipo}_${data}.png`;
+      a.click();
+      mostrarToast('✅','QR Code gerado!',`${nome} (${cod}) — download iniciado.`,'#dcfce7');
+    }, 400);
+  } catch(e) { console.warn('QRCode.js fallback falhou:', e); }
+}
+</script>
+</body>
+</html>
