@@ -166,7 +166,7 @@ Se o e-mail não chegar, o código também aparece no **terminal do servidor** (
 |------|--------|
 | José Reis | Front-end |
 | Vinicius Marques | Full-stack |
-| Carla Rio | Back-end / Excel |
+| Carla Rios | Back-end / Excel |
 | Lauro Aguiar | Back-end / Banco de dados |
 | Pedro Antônio | Visão Computacional |
 
